@@ -1,0 +1,5 @@
+{
+  "name": "Transcriptor / Final ",
+  "description": "Suite de Transcripción Estéreo conectada a Firebase con gestión de flota y procesamiento de audio en tiempo real.",
+  "requestFramePermissions": []
+}
