@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { AgentConfig, ICONS } from '../types';
 import { db, ref, set, get } from '../services/firebase';
@@ -37,7 +38,8 @@ const AdminPanel: React.FC<Props> = ({ agentConfig, onClose, onLogout }) => {
     // Calculates the frequency of every key across the entire system
     const duplicateMap = useMemo(() => {
         const freq: Record<string, number> = {};
-        Object.values(localConfig).forEach(agent => {
+        // Fix: Explicitly cast Object.values to AgentConfig[] to ensure agent is typed and properties are accessible.
+        (Object.values(localConfig) as AgentConfig[]).forEach(agent => {
             const keys = agent.keys ? agent.keys.split('\n') : [];
             keys.forEach(k => {
                 const trimmed = k.trim();
@@ -167,7 +169,9 @@ const AdminPanel: React.FC<Props> = ({ agentConfig, onClose, onLogout }) => {
                                 if (k.trim() === '' && (!editingKey || editingKey.index !== idx)) return null;
 
                                 const isEditing = editingKey?.agentId === agent.id && editingKey?.index === idx;
-                                const maskedValue = k.length > 8 ? `•••• •••• ${k.slice(-4)}` : k;
+                                
+                                // MODIFICACIÓN: Mostrar solo los últimos 4 caracteres
+                                const maskedValue = k.length > 8 ? `...${k.slice(-4)}` : k;
                                 
                                 // CHECK DUPLICATE FOR THIS SPECIFIC KEY
                                 const isDupe = isKeyDuplicate(k);

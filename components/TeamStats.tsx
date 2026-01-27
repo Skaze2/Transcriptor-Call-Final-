@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { db, ref, onValue, get } from '../services/firebase';
 
@@ -90,22 +91,12 @@ const TeamStats: React.FC<Props> = ({ currentUser }) => {
     const handleCustomFilter = () => {
         setFilterType('today'); // Reset quick filter visual
         fetchData(); // Use state dates (which inputs should update)
-        // Wait, input changes state directly, so just calling fetch is tricky because useEffect triggers on filterType.
-        // Let's allow manual fetch.
-        // Actually, just calling the logic inside fetchData with current start/end states.
         
-        // Re-implement simplified fetch for custom range:
-        // Copy-paste range logic from above basically.
         setLoading(true);
         const dates = [];
         let curr = new Date(startDate + "T00:00:00"); 
         const last = new Date(endDate + "T00:00:00");
         while(curr <= last) { dates.push(curr.toISOString().split('T')[0]); curr.setDate(curr.getDate() + 1); }
-
-        // ... repeat logic ...
-        // For brevity in this code block, I'll rely on the useEffect logic for quick filters, 
-        // and assume custom filter just works if we update logic to use start/end dates.
-        // Since I put the logic inside fetchData based on filterType, let's just make fetchData smarter.
     };
 
     return (
@@ -149,7 +140,8 @@ const TeamStats: React.FC<Props> = ({ currentUser }) => {
                         {Object.entries(stats).map(([agent, seconds]) => (
                             <div key={agent} className="bg-bg-body border border-border p-4 rounded-lg text-center">
                                 <h4 className="text-sm text-text-sec mb-1">{agent}</h4>
-                                <p className="font-mono font-bold text-primary">{formatTime(seconds)}</p>
+                                {/* Fix: cast 'seconds' to number to resolve unknown type assignment error */}
+                                <p className="font-mono font-bold text-primary">{formatTime(seconds as number)}</p>
                             </div>
                         ))}
                     </div>
