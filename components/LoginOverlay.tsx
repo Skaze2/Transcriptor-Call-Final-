@@ -46,7 +46,7 @@ const LoginOverlay: React.FC<Props> = ({ agentConfig, onLogin }) => {
                         <input 
                             type="password" 
                             className="w-full p-3 bg-bg-body border border-border rounded-lg text-center text-xl tracking-[5px] mb-4 text-white focus:border-primary outline-none"
-                            placeholder="PIN (9811)"
+                            placeholder="PIN"
                             maxLength={4}
                             value={pin}
                             onChange={(e) => setPin(e.target.value)}
