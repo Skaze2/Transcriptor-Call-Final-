@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Job, UserRole, ICONS } from '../types';
 import QueueTable from './QueueTable';
@@ -50,6 +51,33 @@ const Dashboard: React.FC<Props> = ({
     let ramClass = "text-success bg-success/10 border-success";
     if(Number(estRam) >= 4) ramClass = "text-warning bg-warning/10 border-warning";
     if(Number(estRam) >= 10) ramClass = "text-danger bg-danger/10 border-danger";
+
+    const handleDownloadAll = async () => {
+        // Filter: Done AND has blob AND NOT downloaded yet
+        const finishedJobs = jobs.filter(j => j.status === 'done' && j.docBlob && !j.downloaded);
+        if (finishedJobs.length === 0) return;
+
+        // Iterate and download with delay to prevent browser blocking
+        for (const job of finishedJobs) {
+            if (job.docBlob) {
+                const url = URL.createObjectURL(job.docBlob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${job.fileName.split('.')[0]}_Stereo.doc`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                updateJob(job.id, { downloaded: true });
+
+                // 500ms delay to help browser queue downloads
+                await new Promise(r => setTimeout(r, 500));
+            }
+        }
+    };
+
+    // Count pending downloads for the button label
+    const pendingDownloadsCount = jobs.filter(j => j.status === 'done' && !j.downloaded).length;
 
     return (
         <div className="w-full max-w-[1100px] mx-auto bg-surface rounded-2xl shadow-2xl border border-border p-10 animate-in fade-in duration-500">
@@ -188,6 +216,18 @@ const Dashboard: React.FC<Props> = ({
                                     ⏹ CANCELAR TODO
                                 </button>
                             </>
+                        )}
+
+                        {/* Download All Button - Only visible if there are PENDING downloads */}
+                        {pendingDownloadsCount > 0 && (
+                            <button 
+                                onClick={handleDownloadAll} 
+                                className="flex-1 py-4 bg-gradient-to-br from-success to-emerald-700 text-white rounded-xl font-bold hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
+                                title="Descargar archivos pendientes"
+                            >
+                                <span dangerouslySetInnerHTML={{ __html: ICONS.download }} className="w-5 h-5" />
+                                BAJAR TODO ({pendingDownloadsCount})
+                            </button>
                         )}
                     </div>
 

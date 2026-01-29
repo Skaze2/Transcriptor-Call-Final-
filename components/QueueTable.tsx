@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Job, ICONS } from '../types';
 
@@ -120,12 +121,11 @@ const QueueTable: React.FC<Props> = ({ jobs, currentUser, onPause, onCancel, onD
 
                                         {(isDone || isActive) && (
                                             <button 
-                                                disabled={!isDone}
+                                                disabled={!isDone || job.downloaded}
                                                 onClick={() => onDownload(job.id, job.docBlob, job.fileName)}
                                                 className={`
                                                     px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition shadow-sm
-                                                    ${isDone ? 'bg-success text-white cursor-pointer hover:-translate-y-0.5 hover:brightness-110' : 'bg-surface-2 text-text-sec opacity-50 cursor-not-allowed'}
-                                                    ${job.downloaded ? 'bg-surface-2 text-text-sec border border-border shadow-none' : ''}
+                                                    ${(isDone && !job.downloaded) ? 'bg-success text-white cursor-pointer hover:-translate-y-0.5 hover:brightness-110' : 'bg-surface-2 text-text-sec opacity-50 cursor-not-allowed border border-border shadow-none'}
                                                 `}
                                             >
                                                 <span dangerouslySetInnerHTML={{ __html: job.downloaded ? ICONS.check : ICONS.download }} />
