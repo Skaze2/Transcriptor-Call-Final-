@@ -4,6 +4,7 @@ import { Job, UserRole, ICONS } from '../types';
 import QueueTable from './QueueTable';
 import HistoryArchive from './HistoryArchive';
 import TeamStats from './TeamStats';
+import DownloadSelectionModal from './DownloadSelectionModal';
 
 interface Props {
     userRole: UserRole;
@@ -35,6 +36,7 @@ const Dashboard: React.FC<Props> = ({
     onCancelJob, onRetryJob, onOpenAdmin, updateJob, onLogout
 }) => {
     const [tab, setTab] = useState<'active' | 'archive' | 'team'>('active');
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
     // Stats
     const stats = {
@@ -52,6 +54,20 @@ const Dashboard: React.FC<Props> = ({
     if(Number(estRam) >= 4) ramClass = "text-warning bg-warning/10 border-warning";
     if(Number(estRam) >= 10) ramClass = "text-danger bg-danger/10 border-danger";
 
+    const downloadJob = (job: Job) => {
+        if (job.docBlob) {
+            const url = URL.createObjectURL(job.docBlob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${job.fileName.split('.')[0]}_Stereo.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            updateJob(job.id, { downloaded: true });
+        }
+    };
+
     const handleDownloadAll = async () => {
         // Filter: Done AND has blob AND NOT downloaded yet
         const finishedJobs = jobs.filter(j => j.status === 'done' && j.docBlob && !j.downloaded);
@@ -59,20 +75,9 @@ const Dashboard: React.FC<Props> = ({
 
         // Iterate and download with delay to prevent browser blocking
         for (const job of finishedJobs) {
-            if (job.docBlob) {
-                const url = URL.createObjectURL(job.docBlob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `${job.fileName.split('.')[0]}_Stereo.doc`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                updateJob(job.id, { downloaded: true });
-
-                // 500ms delay to help browser queue downloads
-                await new Promise(r => setTimeout(r, 500));
-            }
+            await downloadJob(job);
+            // 500ms delay to help browser queue downloads
+            await new Promise(r => setTimeout(r, 500));
         }
     };
 
@@ -81,6 +86,13 @@ const Dashboard: React.FC<Props> = ({
 
     return (
         <div className="w-full max-w-[1100px] mx-auto bg-surface rounded-2xl shadow-2xl border border-border p-10 animate-in fade-in duration-500">
+            {isDownloadModalOpen && (
+                <DownloadSelectionModal 
+                    jobs={jobs}
+                    onClose={() => setIsDownloadModalOpen(false)}
+                    onDownload={downloadJob}
+                />
+            )}
             {/* Header */}
             <header className="flex justify-between items-center mb-8 pb-6 border-b border-border">
                 <div>
@@ -227,6 +239,18 @@ const Dashboard: React.FC<Props> = ({
                             >
                                 <span dangerouslySetInnerHTML={{ __html: ICONS.download }} className="w-5 h-5" />
                                 BAJAR TODO ({pendingDownloadsCount})
+                            </button>
+                        )}
+
+                        {/* Download Selection Button */}
+                        {jobs.some(j => j.status === 'done' && j.docBlob) && (
+                            <button 
+                                onClick={() => setIsDownloadModalOpen(true)}
+                                className="flex-1 py-4 bg-surface-2 text-text-main border border-border rounded-xl font-bold hover:bg-surface hover:border-primary transition shadow-lg flex items-center justify-center gap-2"
+                                title="Seleccionar archivos para descargar"
+                            >
+                                <span dangerouslySetInnerHTML={{ __html: ICONS.check }} className="w-5 h-5" />
+                                DESCARGA SELECCIONADA
                             </button>
                         )}
                     </div>
